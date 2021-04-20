@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="birds.css">
+	<script src="neuroevolution.js" defer></script>
+	<script src="birds.js" defer></script>
+	<title> NeuroEvolution Flappy Bird </title>
+</head>
+
+<body>
+	<h1> NeuroEvolution Flappy Bird </h1>
+	<canvas id="flappy" width="500" height="500"></canvas> <br/>
+	<button onclick="setSpeed(60)">x1</button> 
+	<button onclick="setSpeed(120)">x2</button> 
+	<button onclick="setSpeed(180)">x3</button> 
+	<button onclick="setSpeed(1000)">x10</button> 
+	<button onclick="setSpeed(0)">Lightspeed</button> 
+	<br/>
+	<div class="score">
+		Current Score: <span id="cscore"></span><br>
+		Highest Score: <span id="hscore"></span><br>
+		Alive birds: <span id="alive"></span><br>
+		Generation: <span id="generation"></span><br>
+	</div>
+</body>
+
+</html>

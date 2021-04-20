@@ -1,0 +1,6 @@
+Links:
+
+https://github.com/kyokin78/rl-flappybird
+https://github.com/chncyhn/flappybird-qlearning-bot
+
+https://github.com/xviniette/FlappyLearning
