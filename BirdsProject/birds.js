@@ -197,7 +197,7 @@ class Game {
 
 		this.score++;
 		if (this.score > this.maxScore) {
-			this.maxScore = this.score
+			this.maxScore = this.score;
 		}
 
 		this.backgroundPosition += backgroundSpeed;
