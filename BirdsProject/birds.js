@@ -1,5 +1,6 @@
 "use strict";
 
+// setzeroTimeout to be faster than setTimeout
 (function () {
 	var timeouts = [];
 	var messageName = "zero-timeout-message";
@@ -205,9 +206,10 @@ class Game {
 		// Recursion
 		var currentGame = this;
 		if (FPS == 0) {
-			setZeroTimeout(function() {currentGame.update();});
+			window.setZeroTimeout(function () { currentGame.update(); });
+			//setZeroTimeout(function() {currentGame.update();});
 		} else {
-			setTimeout(function() {currentGame.update();}, 1000 / FPS);
+			window.setTimeout(function() {currentGame.update();}, 1000 / FPS);
 		}
 	}
 
