@@ -1,4 +1,9 @@
+// import Neuroevolution class, which is the only one used explicitly in this file
 import {Neuroevolution} from './neuroevolution';
+
+// import jquery and initialize $
+import $ from 'jquery';
+window.jQuery = window.$ = $;
 
 // setzeroTimeout to be faster than setTimeout
 (function () {
@@ -25,22 +30,30 @@ import {Neuroevolution} from './neuroevolution';
 	window.setZeroTimeout = setZeroTimeout;
 })();
 
+// textual output in tabular form - faster than running animations
+const textualOutput = true;
+const nGenerations = 30;
 
 // Scores and generations
-const CurrentScore = document.getElementById("cscore");
-const HighestScore = document.getElementById("hscore");
-const Generation = document.getElementById("generation");
-const Alive = document.getElementById("alive");
+if (!textualOutput) {
+	const CurrentScore = document.getElementById("cscore");
+	const HighestScore = document.getElementById("hscore");
+	const Generation = document.getElementById("generation");
+	const Alive = document.getElementById("alive");
 
-// The canvas
-const canvas = document.querySelector('canvas');
-const ctx = canvas.getContext('2d');
+	// The canvas
+	const canvas = document.querySelector('canvas');
+	const ctx = canvas.getContext('2d');
+}
 
 // Characterisitics
 const verticalPipeSpace = 120;
 const pipeInterval = 90;
 const backgroundSpeed = 0.5;
 const gravity = 0.3;
+
+const canvasHeight = 500;
+const canvasWidth = 500;
 
 // Image source
 const source = {
@@ -73,7 +86,7 @@ class Bird {
 	}
 
 	isDead(pipes) {
-		if (this.y >= canvas.height || this.y + this.height <= 0) {
+		if (this.y >= canvasHeight || this.y + this.height <= 0) {
 			return true;
 		}
 		for (var i = 0; i < pipes.length; i++) {
@@ -138,6 +151,11 @@ class Game {
 		this.score = 0;
 		this.intervalCount = pipeInterval - 10;
 
+		if (textualOutput) {
+			console.log("hey going to print now");
+			$("#table-generations").append(`<tr><td>${this.generation}</td><td>${this.maxScore}</td><td></td></tr>`);
+		}
+
 		this.population = neuroEvol.nextGeneration();
 		for (var i = 0; i < this.population.length; i++) {
 			this.birds.push(new Bird());
@@ -151,7 +169,7 @@ class Game {
 		// Get the next obstacle
 		for (var i = 0; i < this.pipes.length; i += 2) { // 2 because there is always a bottom and a top pipe
 			if (this.pipes[i].x + this.pipes[i].width > this.birds[0].x) {
-				var nextObstacle = this.pipes[i].bottom / canvas.height;
+				var nextObstacle = this.pipes[i].bottom / canvasHeight;
 				break;
 			}
 		}
@@ -160,7 +178,7 @@ class Game {
 		for (var i = 0; i < this.birds.length; i++) {
 			if (this.birds[i].alive) {
 
-				var inputs = [this.birds[i].y / canvas.height, nextObstacle]; // Inputs for the learning algorithm: next obstacle height and bird height
+				var inputs = [this.birds[i].y / canvasHeight, nextObstacle]; // Inputs for the learning algorithm: next obstacle height and bird height
 
 				var tmp = this.population[i].compute(inputs);
 				if (tmp > 0.5) {
@@ -204,20 +222,22 @@ class Game {
 		this.backgroundPosition += backgroundSpeed;
 
 		// Recursion
-		var currentGame = this;
-		if (FPS == 0) {
-			window.setZeroTimeout(function () { currentGame.update(); });
-			//setZeroTimeout(function() {currentGame.update();});
-		} else {
-			window.setTimeout(function() {currentGame.update();}, 1000 / FPS);
+		if (!textualOutput) {
+			var currentGame = this;
+			if (FPS == 0) {
+				window.setZeroTimeout(function () { currentGame.update(); });
+				//setZeroTimeout(function() {currentGame.update();});
+			} else {
+				window.setTimeout(function() {currentGame.update();}, 1000 / FPS);
+			}
 		}
 	}
 
 
 	newPipe() {
-		var position = Math.round(Math.random() * (canvas.height - 2 * 50 - verticalPipeSpace)) + 50; // 50 is the minimum pipe height (top or bottom)
-		this.pipes.push(new Pipe(canvas.width, 0, position));
-		this.pipes.push(new Pipe(canvas.width, position + verticalPipeSpace, canvas.height));
+		var position = Math.round(Math.random() * (canvasHeight - 2 * 50 - verticalPipeSpace)) + 50; // 50 is the minimum pipe height (top or bottom)
+		this.pipes.push(new Pipe(canvasWidth, 0, position));
+		this.pipes.push(new Pipe(canvasWidth, position + verticalPipeSpace, canvasHeight));
 	}
 
 
@@ -297,15 +317,26 @@ function launchGame() {
 	});
 	game = new Game();
 	game.start();
-	game.update();
-	game.display();
+	if (!textualOutput) {
+		game.update();
+	} else {
+		while (game.generation < nGenerations) {
+			game.update();
+		}
+	}
+
+	if (!textualOutput) {
+		game.display();
+	}
 }
 
 
 window.onload = function() {
-	document.getElementById("speed1x").onclick = () => {setSpeed(60)};
-	document.getElementById("speed2x").onclick = () => {setSpeed(120)};
-	document.getElementById("speed5x").onclick = () => {setSpeed(1000)};
-	document.getElementById("speedLightspeed").onclick = () => {setSpeed(0)};
+	if (!textualOutput) {
+		document.getElementById("speed1x").onclick = () => {setSpeed(60)};
+		document.getElementById("speed2x").onclick = () => {setSpeed(120)};
+		document.getElementById("speed5x").onclick = () => {setSpeed(1000)};
+		document.getElementById("speedLightspeed").onclick = () => {setSpeed(0)};
+	}
 	getImages(source);
 }
