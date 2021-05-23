@@ -1,0 +1,47 @@
+@font-face {
+    font-family: "NewFont";
+    src: url('RobotoMono-LightItalic.ttf');
+}
+
+body {
+    font-family: "NewFont";
+    text-align: center;
+    background-color: rgb(210, 209, 252);
+}
+
+h1 {
+    margin-top: 40px;
+}
+
+canvas {
+    border: 3px solid black;
+    background-color: lightgrey;
+}
+
+.score {
+    padding-top: 5px;
+    margin: auto;
+    width: 500px;
+    text-align: left;
+}
+
+button {
+    font-family: "NewFont";
+    margin: 5px;
+    border: 0px solid black;
+    border-radius: 5px;
+    background-color: rgb(230, 230, 230);
+}
+
+button:hover {
+    background-color: rgb(117, 117, 117);
+}
+
+button:active {
+    background-color: black;
+    color: rgb(117, 117, 117);
+}
+
+button:focus{
+    outline: none;
+}
