@@ -34,6 +34,11 @@ window.jQuery = window.$ = $;
 const textualOutput = true;
 const nGenerations = 30;
 
+// The top n highest scoring genomes are printed in sorted order 
+const nHighestScoresToPrint = 12;
+// We go upto this score and see how many generations it takes to reach this
+const metricHighestScore = 100000;
+
 // Scores and generations
 if (!textualOutput) {
 	const CurrentScore = document.getElementById("cscore");
@@ -151,9 +156,10 @@ class Game {
 		this.score = 0;
 		this.intervalCount = pipeInterval - 10;
 
+		// get the highest scores of the current generation
+		const nHighest = neuroEvol.getHighestScores(nHighestScoresToPrint).join(', ');
 		if (textualOutput) {
-			console.log("hey going to print now");
-			$("#table-generations").append(`<tr><td>${this.generation}</td><td>${this.maxScore}</td><td></td></tr>`);
+			$("#table-generations").append(`<tr><td>${this.generation}</td><td>${this.maxScore}</td><td>${nHighest}</td></tr>`);
 		}
 
 		this.population = neuroEvol.nextGeneration();
@@ -320,8 +326,13 @@ function launchGame() {
 	if (!textualOutput) {
 		game.update();
 	} else {
-		while (game.generation < nGenerations) {
+		// update until metricHighestScore is reached
+		while (game.maxScore < metricHighestScore) {
 			game.update();
+		}
+		const nHighest = neuroEvol.getHighestScores(nHighestScoresToPrint).join(', ');
+		if (textualOutput) {
+			$("#table-generations").append(`<tr><td>${game.generation}</td><td>${game.maxScore}</td><td>${nHighest}</td></tr>`);
 		}
 	}
 

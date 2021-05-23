@@ -265,6 +265,15 @@ class OneGeneration {
 			}
 		}
 	}
+
+	getHighestScores(n) {
+		const highestScores = [];
+		const nHighest = Math.min(this.genomes.length, n);
+		for (var i = 0; i < n; i++) {
+			highestScores.push(this.genomes[i].score);
+		}
+		return highestScores;
+	}
 }
 
 
@@ -389,5 +398,15 @@ export class Neuroevolution {
 	// Adds a new Genome with specified Neural Network and score
 	networkScore(network, score) {
 		this.generationsObj.addGenome(new Genome(score, network.getSave()));
+	}
+
+	getHighestScores(n) {
+		if (this.generationsObj.generations.length > 0) {
+			return this.generationsObj
+				.generations[this.generationsObj.generations.length - 1]
+				.getHighestScores(n);
+		} else {
+			return []
+		}
 	}
 }
