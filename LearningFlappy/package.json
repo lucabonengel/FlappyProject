@@ -1,0 +1,21 @@
+{
+  "name": "learningflappy",
+  "version": "1.0.0",
+  "description": "Neuroevolution with Flappy Bird",
+  "main": "birds.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "author": "Luca Bonengel, Guruprerana Shabadi",
+  "license": "ISC",
+  "devDependencies": {
+    "css-loader": "^5.2.5",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.37.1",
+    "webpack-cli": "^4.7.0"
+  },
+  "dependencies": {
+    "jquery": "^3.6.0"
+  }
+}
