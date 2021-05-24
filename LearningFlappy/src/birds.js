@@ -33,7 +33,7 @@ window.jQuery = window.$ = $;
 
 // textual output in tabular form - faster than running animations
 const algorithm = "q-learning";
-const textualOutput = false;
+const textualOutput = true;
 const nGenerations = 30;
 
 // The top n highest scoring genomes are printed in sorted order 
@@ -42,7 +42,9 @@ const nHighestScoresToPrint = 12;
 const metricHighestScore = 100000;
 
 // We need to discretize the inputs for the qtable to have a feasible size
-const discretizationFactor = 100;
+const discretizationFactor = 50;
+// Q learning variant decides the inputs we will use for the q-learning algorithm
+const qLearningVariant = 2;
 
 let CurrentScore;
 let HighestScore;
@@ -338,22 +340,17 @@ class GameQLearning {
 		}
 
 		this.living = this.birds.length;
+
+		this.iteration++;
 	}
 
 	update() {
-		// Get the next obstacle
-		for (var i = 0; i < this.pipes.length; i += 2) { // 2 because there is always a bottom and a top pipe
-			if (this.pipes[i].x + (this.pipes[i].width) > this.birds[0].x) {
-				var nextObstacle = Math.round(this.pipes[i].bottom*discretizationFactor/canvasHeight);
-				break;
-			}
-		}
 
 		// For each bird that is still alive, we decide if we flap or not
 		for (var i = 0; i < this.birds.length; i++) {
 			if (this.birds[i].alive) {
 
-				var inputs = [Math.round(this.birds[i].y*discretizationFactor/canvasHeight), nextObstacle]; // Inputs for the learning algorithm: next obstacle height and bird height
+				var inputs = this.getQLearningInputs(i); // Inputs for the learning algorithm: next obstacle height and bird height
 
 				var tmp = this.qLearning.getAction(inputs, 1);
 				if (tmp === 1) {
@@ -362,14 +359,7 @@ class GameQLearning {
 
 				this.birds[i].fall();
 
-				for (var j = 0; j < this.pipes.length; j += 2) { // 2 because there is always a bottom and a top pipe
-					if (this.pipes[j].x + (this.pipes[j].width / 2) > this.birds[0].x) {
-						var nextObstacleAfter = Math.round(this.pipes[j].bottom*discretizationFactor/canvasHeight);
-						break;
-					}
-				}
-
-				var new_inputs = [Math.round(this.birds[i].y*discretizationFactor/canvasHeight), nextObstacleAfter]
+				var new_inputs = this.getQLearningInputs(i);
 				
 				if (this.birds[i].isDead(this.pipes)) {
 					this.birds[i].alive = false;
@@ -378,7 +368,7 @@ class GameQLearning {
 					this.qLearning.update(inputs, 1, tmp, new_inputs, 0);
 
 					if (this.isEnd()) {
-						// If all birds are dead, we start again with the next population
+						// If all birds are dead, we start again with the next game
 						this.start();
 					}
 				} else {
@@ -429,6 +419,35 @@ class GameQLearning {
 	}
 
 
+	getNextPipeXY() {
+		for (var i = 0; i < this.pipes.length; i += 2) { // 2 because there is always a bottom and a top pipe
+			if (this.pipes[i].x + (this.pipes[i].width / 2.0) > this.birds[0].x) {
+				const nextObstacleY = this.pipes[i].bottom;
+				const nextObstacleX = this.pipes[i].x;
+				return [nextObstacleX, nextObstacleY];
+			}
+		}
+		return [null, null];
+	}
+
+
+	getQLearningInputs(i) {
+		const [nextObstacleX, nextObstacleY] = this.getNextPipeXY();
+		if (qLearningVariant === 1) {
+			const distX = Math.round((this.birds[i].x - nextObstacleX)*discretizationFactor/canvasWidth);
+			const distY = Math.round((this.birds[i].y - nextObstacleY)*discretizationFactor/canvasHeight);
+			return [distX, distY]
+		} else if (qLearningVariant === 2) {
+			return [Math.round(this.birds[i].y*discretizationFactor/canvasHeight), 
+				Math.round(nextObstacleY*discretizationFactor/canvasHeight)];
+		} else if (qLearningVariant === 3) {
+			const distX = Math.round((this.birds[i].x - nextObstacleX)*discretizationFactor/canvasWidth);
+			return [Math.round(this.birds[i].y*discretizationFactor/canvasHeight), 
+				Math.round(nextObstacleY*discretizationFactor/canvasHeight), distX];
+		}
+	}
+
+
 	display() {
 		// We clear the canvas
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -462,7 +481,7 @@ class GameQLearning {
 		CurrentScore.textContent = this.score;
 		HighestScore.textContent = this.maxScore;
 		Generation.textContent = this.iteration;
-		Alive.textContent = this.living + "/" + 1;
+		Alive.textContent = this.living + "/" + this.birds.length;
 
 		// Recursion
 		var self = this;
@@ -522,10 +541,21 @@ function launchGame() {
 			game.display();
 		}
 	} else if (algorithm.localeCompare("q-learning") === 0) {
-		game = new GameQLearning();
-		game.start();
-		game.update();
-		game.display();
+		if (!textualOutput) {
+			game = new GameQLearning();
+			game.start();
+			game.update();
+			game.display();
+		} else {
+			for (let i = 0; i < 2; i++) {
+				game = new GameQLearning();
+				game.start();
+				while (game.maxScore < 700) {
+					game.update();
+				}
+				$('#table-generations').append(`<tr><td>${i}</td><td>${game.iteration}</td></tr>`)
+			}
+		}
 	}
 }
 
