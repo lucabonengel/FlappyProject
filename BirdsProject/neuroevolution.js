@@ -252,8 +252,7 @@ class OneGeneration {
 				var child = this.breed(this.genomes[i], this.genomes[max], mutationRate, mutationRange);
 				nexts.push(child.network);
 				if (nexts.length >= population) {
-					// Return once number of children is equal to the
-					// population by generatino value.
+					// Return once number of children is equal to the population by generation value.
 					return nexts;
 				}
 			}
