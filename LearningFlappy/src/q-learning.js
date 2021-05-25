@@ -70,7 +70,7 @@ export class QLearning {
 
         this.matrix.incrementNReached(index);
         //let learningRate = 1.0 / (1.0 + this.matrix.getNReached(index));
-        const learningRate = 0.1;
+        const learningRate = 0.001;
 
         let originalValue = this.matrix.getValue(index);
         let update =

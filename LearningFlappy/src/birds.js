@@ -42,9 +42,9 @@ const nHighestScoresToPrint = 12;
 const metricHighestScore = 100000;
 
 // We need to discretize the inputs for the qtable to have a feasible size
-const discretizationFactor = 100.0;
+let discretizationFactor = 100.0;
 // Q learning variant decides the inputs we will use for the q-learning algorithm
-const qLearningVariant = 1;
+let qLearningVariant = 2;
 // restore state to 50 iterations previously when the bird dies in the q-learning algorithm
 const restoreQLearning = true;
 const restoreStates = 70;
@@ -334,7 +334,7 @@ class Game {
 }
 
 class GameQLearning {
-	constructor() {
+	constructor(qLearning = null) {
 		this.pipes;
 		this.birds;
 		this.living;
@@ -343,8 +343,16 @@ class GameQLearning {
 		this.intervalCount;
 		this.iteration = 0;
 		this.backgroundPosition = 0;
-		this.qLearning = new QLearning();
+
+		if (qLearning) {
+			this.qLearning = qLearning;
+		} else {
+			this.qLearning = new QLearning();
+		}
+
 		this.previousStates = [];
+		this.restores = 0;
+		this.updates = 0;
 	}
 
 	// If all birds are dead
@@ -377,7 +385,8 @@ class GameQLearning {
 
 	}
 
-	update() {
+	update(learning = true) {
+		this.updates++;
 
 		for (var i = 0; i < this.pipes.length; i++) {
 			this.pipes[i].update();
@@ -413,18 +422,22 @@ class GameQLearning {
 					this.birds[i].alive = false;
 					this.living--;
 
-					this.qLearning.update(inputs, 1, tmp, new_inputs, 0);
+					if (learning) {
+						this.qLearning.update(inputs, 1, tmp, new_inputs, 0);
+					}
 
 					if (this.isEnd()) {
 						// If all birds are dead, we start again with the next game
-						if (restoreQLearning) {
+						if (restoreQLearning && learning) {
 							this.restoreState();
 						} else {
 							this.start();
 						}
 					}
 				} else {
-					this.qLearning.update(inputs, 1, tmp, new_inputs, 1);
+					if (learning) {
+						this.qLearning.update(inputs, 1, tmp, new_inputs, 1);
+					}
 				}
 			}
 		}
@@ -566,10 +579,11 @@ class GameQLearning {
 			});
 			this.pipes = toRestore.pipes.map((pipeState) => {
 				const pipe = new Pipe(pipeState.x, pipeState.y, pipeState.bottom);
-				//pipe.deserialize(pipeState);
 				return pipe;
 			})
 		}
+
+		this.restores++;
 	}
 }
 
@@ -631,14 +645,67 @@ function launchGame() {
 			game.update();
 			game.display();
 		} else {
-			for (let i = 0; i < 2; i++) {
+			const variantInputScores = {};
+			for (qLearningVariant = 2; qLearningVariant <= 2; qLearningVariant +=1) {
+				const scoresIter = [];
 				game = new GameQLearning();
-				game.start();
-				while (game.maxScore < 1000) {
+				game.start()
+				while (game.updates < 2000000) {
 					game.update();
 				}
-				$('#table-generations').append(`<tr><td>${i}</td><td>${game.iteration}</td></tr>`)
+				for (let i = 0; i < 20; i++) {
+					const gameTest = new GameQLearning(game.qLearning);
+					gameTest.start();
+					while (gameTest.iteration <= 1) {
+						gameTest.update(false);
+					}
+					scoresIter.push(gameTest.maxScore);
+				}
+				variantInputScores[Math.round(qLearningVariant)] = JSON.parse(JSON.stringify(scoresIter));
 			}
+			console.log(JSON.stringify(variantInputScores));
+			/*
+			const discretizationScores = {};
+			for (discretizationFactor = 10.0; discretizationFactor <= 500.0; discretizationFactor+=10) {
+				const scoresIter = [];
+				game = new GameQLearning();
+				game.start()
+				while (game.updates < 100000) {
+					game.update();
+				}
+				for (let i = 0; i < 20; i++) {
+					const gameTest = new GameQLearning(game.qLearning);
+					gameTest.start();
+					while (gameTest.iteration <= 1) {
+						gameTest.update(false);
+					}
+					scoresIter.push(gameTest.maxScore);
+				}
+				discretizationScores[Math.round(discretizationFactor)] = JSON.parse(JSON.stringify(scoresIter));
+			}
+			console.log(JSON.stringify(discretizationScores));
+			*/
+			/*
+			game = new GameQLearning();
+			game.start();
+			const scores = [];
+			for (let i = 0; i < 10000*200; i+=10000) {
+				while (game.updates < i) {
+					game.update();
+				}
+				const scoresIter = [];
+				for (let j = 0; j < 20; j++) {
+					const gameTest = new GameQLearning(game.qLearning);
+					gameTest.start();
+					while (gameTest.iteration <= 1) {
+						gameTest.update(false);
+					}
+					scoresIter.push(gameTest.maxScore);
+				}
+				scores.push(scoresIter);
+			}
+			console.log(JSON.stringify(scores));
+			*/
 		}
 	}
 }
