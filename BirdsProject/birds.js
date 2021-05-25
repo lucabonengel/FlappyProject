@@ -1,31 +1,5 @@
 "use strict";
 
-// setzeroTimeout to be faster than setTimeout
-(function () {
-	var timeouts = [];
-	var messageName = "zero-timeout-message";
-
-	function setZeroTimeout(fn) {
-		timeouts.push(fn);
-		window.postMessage(messageName, "*");
-	}
-
-	function handleMessage(event) {
-		if (event.source == window && event.data == messageName) {
-			event.stopPropagation();
-			if (timeouts.length > 0) {
-				var fn = timeouts.shift();
-				fn();
-			}
-		}
-	}
-
-	window.addEventListener("message", handleMessage, true);
-
-	window.setZeroTimeout = setZeroTimeout;
-})();
-
-
 // Scores and generations
 const CurrentScore = document.getElementById("cscore");
 const HighestScore = document.getElementById("hscore");
@@ -90,9 +64,9 @@ class Bird {
 class Pipe {
 	constructor(x, y, bottom) {
 		this.x = x;
-		this.y = y;
+		this.y = y; // Top left corner of the pipe we can see in the screen
 		this.width = 50;
-		this.bottom = bottom;
+		this.bottom = bottom; // Bottom left corner of the pipe we can see in the screen
 		this.speed = 3;
 	}
 
@@ -124,34 +98,36 @@ class Game {
 
 	// If all birds are dead
 	isEnd() {
-		for (var i = 0; i < this.birds.length; i++) {
-			if (this.birds[i].alive) {
-				return false;
-			}
+		if (this.living <= 0) {
+			return true;
+		} else {
+			return false;
 		}
-		return true;
 	}
 
+	// Start with a new generation
 	start() {
 		this.birds = [];
 		this.pipes = [];
 		this.score = 0;
 		this.intervalCount = pipeInterval - 10;
 
-		this.population = neuroEvol.nextGeneration();
+		this.population = neuroEvol.generateGeneration(); // We get the networks in normal form
 		for (var i = 0; i < this.population.length; i++) {
 			this.birds.push(new Bird());
 		}
 
 		this.generation++;
-		this.living = this.birds.length;
+		this.living = this.population.length;
 	}
 
+	/////////////////////////////////////////////////////////////
+	///////////////////////// GAME LOOP /////////////////////////
 	update() {
 		// Get the next obstacle
 		for (var i = 0; i < this.pipes.length; i += 2) { // 2 because there is always a bottom and a top pipe
 			if (this.pipes[i].x + this.pipes[i].width > this.birds[0].x) {
-				var nextObstacle = this.pipes[i].bottom / canvas.height;
+				var nextObstacle = (this.pipes[i].bottom + 0.5 * verticalPipeSpace) / canvas.height;  // 0.5 * verticalPipeSpace added
 				break;
 			}
 		}
@@ -162,8 +138,7 @@ class Game {
 
 				var inputs = [this.birds[i].y / canvas.height, nextObstacle]; // Inputs for the learning algorithm: next obstacle height and bird height
 
-				var tmp = this.population[i].compute(inputs);
-				if (tmp > 0.5) {
+				if (this.population[i].compute(inputs) > 0.5) { // We decide if we flap or not
 					this.birds[i].flap();
 				}
 
@@ -174,7 +149,7 @@ class Game {
 					this.living--;
 					neuroEvol.networkScore(this.population[i], this.score);
 					if (this.isEnd()) {
-						// If all birds are dead, we start again with the next population
+						// If all birds are dead, we start again with the next generation
 						this.start();
 					}
 				}
@@ -212,6 +187,8 @@ class Game {
 			window.setTimeout(function() {currentGame.update();}, 1000 / FPS);
 		}
 	}
+	///////////////////////// END GAME LOOP /////////////////////////
+	/////////////////////////////////////////////////////////////////
 
 
 	newPipe() {
@@ -221,6 +198,8 @@ class Game {
 	}
 
 
+	////////////////////////////////////////////////////////////////
+	///////////////////////// DISPLAY LOOP /////////////////////////
 	display() {
 		// We clear the canvas
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -254,12 +233,14 @@ class Game {
 		CurrentScore.textContent = this.score;
 		HighestScore.textContent = this.maxScore;
 		Generation.textContent = this.generation;
-		Alive.textContent = this.living + "/" + neuroEvol.options.population;
+		Alive.textContent = this.living + "/" + neuroEvol.parameters.population;
 
 		// Recursion
 		var self = this;
 		requestAnimationFrame(function() {self.display();});
 	}
+	///////////////////////// END DISPLAY LOOP /////////////////////////
+	////////////////////////////////////////////////////////////////////
 }
 
 
@@ -291,15 +272,38 @@ function getImages(sources) {
 
 
 function launchGame() {
-	neuroEvol = new Neuroevolution({
-		population: 50,
-		network: [2, [2], 1],
-	});
+	neuroEvol = new Neuroevolution();
 	game = new Game();
 	game.start();
 	game.update();
 	game.display();
 }
+
+
+// setzeroTimeout to be faster than setTimeout
+(function () {
+	var timeouts = [];
+	var messageName = "zero-timeout-message";
+
+	function setZeroTimeout(fn) {
+		timeouts.push(fn);
+		window.postMessage(messageName, "*");
+	}
+
+	function handleMessage(event) {
+		if (event.source == window && event.data == messageName) {
+			event.stopPropagation();
+			if (timeouts.length > 0) {
+				var fn = timeouts.shift();
+				fn();
+			}
+		}
+	}
+
+	window.addEventListener("message", handleMessage, true);
+
+	window.setZeroTimeout = setZeroTimeout;
+})();
 
 
 window.onload = function() {

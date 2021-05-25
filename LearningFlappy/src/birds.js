@@ -5,33 +5,9 @@ import {Neuroevolution} from './neuroevolution';
 import $ from 'jquery';
 window.jQuery = window.$ = $;
 
-// setzeroTimeout to be faster than setTimeout
-(function () {
-	var timeouts = [];
-	var messageName = "zero-timeout-message";
-
-	function setZeroTimeout(fn) {
-		timeouts.push(fn);
-		window.postMessage(messageName, "*");
-	}
-
-	function handleMessage(event) {
-		if (event.source == window && event.data == messageName) {
-			event.stopPropagation();
-			if (timeouts.length > 0) {
-				var fn = timeouts.shift();
-				fn();
-			}
-		}
-	}
-
-	window.addEventListener("message", handleMessage, true);
-
-	window.setZeroTimeout = setZeroTimeout;
-})();
-
 // textual output in tabular form - faster than running animations
 const textualOutput = true;
+const minimalOutput = true;
 const nGenerations = 30;
 
 // The top n highest scoring genomes are printed in sorted order 
@@ -159,10 +135,12 @@ class Game {
 		// get the highest scores of the current generation
 		const nHighest = neuroEvol.getHighestScores(nHighestScoresToPrint).join(', ');
 		if (textualOutput) {
-			$("#table-generations").append(`<tr><td>${this.generation}</td><td>${this.maxScore}</td><td>${nHighest}</td></tr>`);
+			if (!minimalOutput) {
+				$("#table-generations").append(`<tr><td>${this.generation}</td><td>${this.maxScore}</td><td>${nHighest}</td></tr>`);
+			}
 		}
 
-		this.population = neuroEvol.nextGeneration();
+		this.population = neuroEvol.generateGeneration();
 		for (var i = 0; i < this.population.length; i++) {
 			this.birds.push(new Bird());
 		}
@@ -175,7 +153,7 @@ class Game {
 		// Get the next obstacle
 		for (var i = 0; i < this.pipes.length; i += 2) { // 2 because there is always a bottom and a top pipe
 			if (this.pipes[i].x + this.pipes[i].width > this.birds[0].x) {
-				var nextObstacle = this.pipes[i].bottom / canvasHeight;
+				var nextObstacle = (this.pipes[i].bottom + 0.5 * verticalPipeSpace) / canvasHeight;
 				break;
 			}
 		}
@@ -186,8 +164,7 @@ class Game {
 
 				var inputs = [this.birds[i].y / canvasHeight, nextObstacle]; // Inputs for the learning algorithm: next obstacle height and bird height
 
-				var tmp = this.population[i].compute(inputs);
-				if (tmp > 0.5) {
+				if (this.population[i].compute(inputs) > 0.5) {
 					this.birds[i].flap();
 				}
 
@@ -309,18 +286,45 @@ function getImages(sources) {
 		images[i].onload = function () {
 			loaded++;
 			if (loaded == 4) {
-				launchGame();
+				launchSeveralTimes();
 			}
 		}
 	}
 }
 
 
+
+
+// setzeroTimeout to be faster than setTimeout
+(function () {
+	var timeouts = [];
+	var messageName = "zero-timeout-message";
+
+	function setZeroTimeout(fn) {
+		timeouts.push(fn);
+		window.postMessage(messageName, "*");
+	}
+
+	function handleMessage(event) {
+		if (event.source == window && event.data == messageName) {
+			event.stopPropagation();
+			if (timeouts.length > 0) {
+				var fn = timeouts.shift();
+				fn();
+			}
+		}
+	}
+
+	window.addEventListener("message", handleMessage, true);
+
+	window.setZeroTimeout = setZeroTimeout;
+})();
+
+
+
+
 function launchGame() {
-	neuroEvol = new Neuroevolution({
-		population: 50,
-		network: [2, [2], 1],
-	});
+	neuroEvol = new Neuroevolution();
 	game = new Game();
 	game.start();
 	if (!textualOutput) {
@@ -332,7 +336,10 @@ function launchGame() {
 		}
 		const nHighest = neuroEvol.getHighestScores(nHighestScoresToPrint).join(', ');
 		if (textualOutput) {
-			$("#table-generations").append(`<tr><td>${game.generation}</td><td>${game.maxScore}</td><td>${nHighest}</td></tr>`);
+			if (!minimalOutput) {
+				$("#table-generations").append(`<tr><td>${game.generation}</td><td>${game.maxScore}</td><td>${nHighest}</td></tr>`);
+			}
+			required_to_reach_100000.push(game.generation);
 		}
 	}
 
@@ -350,4 +357,13 @@ window.onload = function() {
 		document.getElementById("speedLightspeed").onclick = () => {setSpeed(0)};
 	}
 	getImages(source);
+}
+
+
+var required_to_reach_100000 = []
+function launchSeveralTimes() {
+	for (var i = 0; i < 50; i++) {
+		launchGame();
+	}
+	console.log(required_to_reach_100000);
 }
