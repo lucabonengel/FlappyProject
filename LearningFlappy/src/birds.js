@@ -42,9 +42,12 @@ const nHighestScoresToPrint = 12;
 const metricHighestScore = 100000;
 
 // We need to discretize the inputs for the qtable to have a feasible size
-const discretizationFactor = 50;
+const discretizationFactor = 100.0;
 // Q learning variant decides the inputs we will use for the q-learning algorithm
-const qLearningVariant = 2;
+const qLearningVariant = 1;
+// restore state to 50 iterations previously when the bird dies in the q-learning algorithm
+const restoreQLearning = true;
+const restoreStates = 70;
 
 let CurrentScore;
 let HighestScore;
@@ -71,8 +74,8 @@ const pipeInterval = 90;
 const backgroundSpeed = 0.5;
 const gravity = 0.3;
 
-const canvasHeight = 500;
-const canvasWidth = 500;
+const canvasHeight = 500.0;
+const canvasWidth = 500.0;
 
 // Image source
 const source = {
@@ -115,6 +118,20 @@ class Bird {
 		}
 		return false;
 	}
+
+	serialize() {
+		return {
+			y: this.y,
+			alive: this.alive,
+			velocity: this.velocity
+		}
+	}
+
+	deserialize(obj) {
+		this.y = obj.y;
+		this.alive = obj.alive;
+		this.velocity = obj.velocity;
+	}
 }
 
 
@@ -136,6 +153,20 @@ class Pipe {
 		if (this.x + this.width < 0) {
 			return true;
 		}
+	}
+
+	serialize() {
+		return {
+			x: this.x,
+			y: this.y,
+			bottom: this.bottom,
+		};
+	}
+
+	deserialize(obj) {
+		this.x = obj.x;
+		this.y = obj.y;
+		this.bottom = obj.bottom;
 	}
 }
 
@@ -313,6 +344,7 @@ class GameQLearning {
 		this.iteration = 0;
 		this.backgroundPosition = 0;
 		this.qLearning = new QLearning();
+		this.previousStates = [];
 	}
 
 	// If all birds are dead
@@ -342,9 +374,25 @@ class GameQLearning {
 		this.living = this.birds.length;
 
 		this.iteration++;
+
 	}
 
 	update() {
+
+		for (var i = 0; i < this.pipes.length; i++) {
+			this.pipes[i].update();
+		}
+
+		if (this.pipes.length > 0 && this.pipes[0].isOut()) {
+			this.pipes.shift();
+			this.pipes.shift();
+		}
+
+		this.intervalCount++;
+		if (this.intervalCount == pipeInterval) {
+			this.intervalCount = 0;
+			this.newPipe();
+		}
 
 		// For each bird that is still alive, we decide if we flap or not
 		for (var i = 0; i < this.birds.length; i++) {
@@ -369,7 +417,11 @@ class GameQLearning {
 
 					if (this.isEnd()) {
 						// If all birds are dead, we start again with the next game
-						this.start();
+						if (restoreQLearning) {
+							this.restoreState();
+						} else {
+							this.start();
+						}
 					}
 				} else {
 					this.qLearning.update(inputs, 1, tmp, new_inputs, 1);
@@ -377,20 +429,7 @@ class GameQLearning {
 			}
 		}
 
-		for (var i = 0; i < this.pipes.length; i++) {
-			this.pipes[i].update();
-		}
-
-		if (this.pipes.length > 0 && this.pipes[0].isOut()) {
-			this.pipes.shift();
-			this.pipes.shift();
-		}
-
-		this.intervalCount++;
-		if (this.intervalCount == pipeInterval) {
-			this.intervalCount = 0;
-			this.newPipe();
-		}
+		this.saveState();
 
 		this.score++;
 		if (this.score > this.maxScore) {
@@ -421,7 +460,7 @@ class GameQLearning {
 
 	getNextPipeXY() {
 		for (var i = 0; i < this.pipes.length; i += 2) { // 2 because there is always a bottom and a top pipe
-			if (this.pipes[i].x + (this.pipes[i].width / 2.0) > this.birds[0].x) {
+			if (this.pipes[i].x + (this.pipes[i].width / 1.0) > this.birds[0].x) {
 				const nextObstacleY = this.pipes[i].bottom;
 				const nextObstacleX = this.pipes[i].x;
 				return [nextObstacleX, nextObstacleY];
@@ -436,7 +475,7 @@ class GameQLearning {
 		if (qLearningVariant === 1) {
 			const distX = Math.round((this.birds[i].x - nextObstacleX)*discretizationFactor/canvasWidth);
 			const distY = Math.round((this.birds[i].y - nextObstacleY)*discretizationFactor/canvasHeight);
-			return [distX, distY]
+			return [Math.round(this.birds[i].y*discretizationFactor/canvasHeight), distX, distY];
 		} else if (qLearningVariant === 2) {
 			return [Math.round(this.birds[i].y*discretizationFactor/canvasHeight), 
 				Math.round(nextObstacleY*discretizationFactor/canvasHeight)];
@@ -486,6 +525,51 @@ class GameQLearning {
 		// Recursion
 		var self = this;
 		requestAnimationFrame(function() {self.display();});
+	}
+
+	saveState() {
+		if (!restoreQLearning) {
+			return;
+		}
+
+		if (this.previousStates.length >= restoreStates) {
+			this.previousStates.shift()
+		}
+		this.previousStates.push({
+			living: this.living,
+			score: this.score,
+			intervalCount: this.intervalCount,
+			backgroundPosition: this.backgroundPosition,
+			birds: this.birds.map((bird) => (bird.serialize())),
+			pipes: this.pipes.map((pipe) => (pipe.serialize())),
+		});
+	}
+
+	restoreState() {
+		if (!restoreQLearning) {
+			return;
+		}
+		
+		if (this.previousStates.length === 0) {
+			this.start();
+		} else {
+			const toRestore = this.previousStates[0];
+			this.living = toRestore.living;
+			this.score = toRestore.score;
+			this.intervalCount = toRestore.intervalCount;
+			this.backgroundPosition = toRestore.backgroundPosition;
+
+			this.birds = toRestore.birds.map((birdState) => {
+				const bird = new Bird();
+				bird.deserialize(birdState);
+				return bird;
+			});
+			this.pipes = toRestore.pipes.map((pipeState) => {
+				const pipe = new Pipe(pipeState.x, pipeState.y, pipeState.bottom);
+				//pipe.deserialize(pipeState);
+				return pipe;
+			})
+		}
 	}
 }
 
@@ -550,7 +634,7 @@ function launchGame() {
 			for (let i = 0; i < 2; i++) {
 				game = new GameQLearning();
 				game.start();
-				while (game.maxScore < 700) {
+				while (game.maxScore < 1000) {
 					game.update();
 				}
 				$('#table-generations').append(`<tr><td>${i}</td><td>${game.iteration}</td></tr>`)

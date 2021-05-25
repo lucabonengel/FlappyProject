@@ -55,7 +55,7 @@ class QMatrix {
 
 function reward(alive) {
     if (alive === 1) {
-        return 15;
+        return 0;
     }
     return -1000;
 }
@@ -69,7 +69,8 @@ export class QLearning {
         let index = [ state, alive, action ];
 
         this.matrix.incrementNReached(index);
-        let learningRate = 1.0 / (1.0 + this.matrix.getNReached(index));
+        //let learningRate = 1.0 / (1.0 + this.matrix.getNReached(index));
+        const learningRate = 0.1;
 
         let originalValue = this.matrix.getValue(index);
         let update =
