@@ -1,8 +1,8 @@
 # Flappy Project
 
 ### Creators:
-- Luca Bonengel
 - Guruprerana Shabadi
+- Luca Bonengel
 
 ## Short description
 
