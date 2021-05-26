@@ -11,7 +11,7 @@ In this project, we studied two different machine learning algorithms, **Neuroev
 **Neuroevolution** is a machine learning technique that applies evolutionary algorithms to construct artificial neural networks, taking inspiration from the evolution of biological nervous systems in nature.
 
 
-https://user-images.githubusercontent.com/72190529/119739580-bb293d00-be82-11eb-98bd-51243e30ecbd.mp4
+https://user-images.githubusercontent.com/72190529/119740360-1576cd80-be84-11eb-87a5-5b8481b556d5.mp4
 
 
 **Q-learning** is a model-free reinforcement learning algorithm that learns the value of an action in a particular state.
