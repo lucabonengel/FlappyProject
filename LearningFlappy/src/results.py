@@ -204,3 +204,48 @@ print(np.mean(network7))  # 129.74
 #randomBehaviour: 0.2,   // New random networks for the next generation(rate)
 #mutationRate: 0.1,      // Mutation rate on the weights
 #mutationRange: 0.5,     // Interval of the mutation changes on the weight
+
+
+
+
+
+
+print('\n')
+###################################
+######## TESTS PROPORTIONS ########
+###################################
+
+
+proportions1 = np.array([49, 57, 51, 71, 52, 17, 16, 24, 118, 39, 29, 61, 10, 8, 56, 10, 28, 228, 32, 60, 30, 69, 17, 15, 12,
+                         107, 9, 34, 21, 17, 18, 90, 52, 29, 74, 45, 16, 18, 26, 33, 64, 44, 31, 39, 21, 34, 26, 19, 9, 8])
+print(np.mean(proportions1))  # 40.86
+#network: [2, [3], 1],   // neural network structure
+#population: 50,         // Population by generation
+#elitism: 0.2,           // Best networks kept unchanged for the next generation(rate)
+#randomBehaviour: 0.2,   // New random networks for the next generation(rate)
+#mutationRate: 0.1,      // Mutation rate on the weights
+#mutationRange: 0.5,     // Interval of the mutation changes on the weight
+
+
+proportions2 = np.array([88, 110, 75, 15, 19, 49, 80, 204, 191, 67, 75, 51, 98, 61, 42, 217, 292, 29, 92, 153, 81, 171,
+                         50, 78, 78, 245, 163, 113, 324, 82, 29, 82, 63, 72, 11, 41, 48, 6, 84, 75, 47, 31, 155, 199, 108, 124, 197, 24, 10, 196])
+print(np.mean(proportions2))  # 99.9
+#network: [2, [3], 1],   // neural network structure
+#population: 50,         // Population by generation
+#elitism: 0.6,           // Best networks kept unchanged for the next generation(rate)
+#randomBehaviour: 0.2,   // New random networks for the next generation(rate)
+#mutationRate: 0.1,      // Mutation rate on the weights
+#mutationRange: 0.5,     // Interval of the mutation changes on the weight
+
+proportions3 = np.array([64, 77, 108, 165, 25, 183, 90, 91, 59, 216, 8, 82, 83, 88, 17, 100, 185, 60, 81, 22, 105, 117, 195,
+                         136, 62, 118, 80, 30, 24, 102, 45, 84, 118, 22, 60, 62, 93, 50, 152, 47, 231, 95, 174, 32, 59, 93, 36, 69, 142, 128])
+print(np.mean(proportions3))  # 91.3
+#network: [2, [3], 1],   // neural network structure
+#population: 50,         // Population by generation
+#elitism: 0.2,           // Best networks kept unchanged for the next generation(rate)
+#randomBehaviour: 0.6,   // New random networks for the next generation(rate)
+#mutationRate: 0.1,      // Mutation rate on the weights
+#mutationRange: 0.5,     // Interval of the mutation changes on the weight
+
+
+interesting = np.array([885, 171, 9960, 414, 11537])

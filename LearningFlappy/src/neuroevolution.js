@@ -322,7 +322,7 @@ export class Neuroevolution {
 	constructor() {
 		this.parameters = {
 			// various factors and parameters (along with default values)
-			network: [2, [3], 1],    // neural network structure
+			network: [2, [3], 1],   // neural network structure
 			population: 50,         // Population by generation
 			elitism: 0.2,           // Best networks kept unchanged for the next generation (rate)
 			randomBehaviour: 0.2,   // New random networks for the next generation (rate)
