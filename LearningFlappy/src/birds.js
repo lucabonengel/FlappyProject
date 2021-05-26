@@ -8,7 +8,7 @@ window.jQuery = window.$ = $;
 
 // textual output in tabular form - faster than running animations
 const algorithm = "q-learning";
-const textualOutput = true;
+let textualOutput = false;
 const minimalOutput = true;
 const nGenerations = 30;
 
@@ -18,11 +18,11 @@ const nHighestScoresToPrint = 12;
 const metricHighestScore = 100000;
 
 // We need to discretize the inputs for the qtable to have a feasible size
-let discretizationFactor = 100.0;
+let discretizationFactor = 30.0;
 // Q learning variant decides the inputs we will use for the q-learning algorithm
 let qLearningVariant = 2;
 // restore state to 50 iterations previously when the bird dies in the q-learning algorithm
-const restoreQLearning = true;
+let restoreQLearning = true;
 const restoreStates = 70;
 
 let CurrentScore;
@@ -644,12 +644,26 @@ function launchGame() {
 			game.display();
 		}
 	} else if (algorithm.localeCompare("q-learning") === 0) {
+		textualOutput = true;
 		if (!textualOutput) {
 			game = new GameQLearning();
 			game.start();
 			game.update();
 			game.display();
 		} else {
+			game = new GameQLearning();
+			game.start();
+			while (game.updates < 1000000) {
+				game.update();
+			}
+			
+			textualOutput = false;
+			const newGame = new GameQLearning(game.qLearning);
+			restoreQLearning = false;
+			newGame.start();
+			newGame.update();
+			newGame.display();
+			/*
 			const variantInputScores = {};
 			for (qLearningVariant = 2; qLearningVariant <= 2; qLearningVariant +=1) {
 				const scoresIter = [];
@@ -669,6 +683,7 @@ function launchGame() {
 				variantInputScores[Math.round(qLearningVariant)] = JSON.parse(JSON.stringify(scoresIter));
 			}
 			console.log(JSON.stringify(variantInputScores));
+			*/
 			/*
 			const discretizationScores = {};
 			for (discretizationFactor = 10.0; discretizationFactor <= 500.0; discretizationFactor+=10) {

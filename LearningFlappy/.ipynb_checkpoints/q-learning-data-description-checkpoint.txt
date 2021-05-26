@@ -1,0 +1,5 @@
+The first object contains two lists: "noRestore" and "restore" which are the points attained after every 10,000th iteration run 200 times with the game run 20 times for each iteration number chosen.
+
+For each discretization factor value, we train upto 1,000,000 updates of the Q matrix with the restarting of state
+
+Same with variant inputs
