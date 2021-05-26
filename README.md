@@ -8,7 +8,11 @@
 
 In this project, we studied two different machine learning algorithms, **Neuroevolution** and **Q-Learning**, to learn how to play the (in)famous game of **Flappy Bird**.
 
-**Neuroevolution** is a machine learning technique that applies evolutionary algorithms to construct artificial neural networks, taking inspiration from the evolution of biological nervous systems in nature. The final result [here](https://github.com/lucabonengel/FlappyProject/blob/main/BirdsProject/index.html).
+**Neuroevolution** is a machine learning technique that applies evolutionary algorithms to construct artificial neural networks, taking inspiration from the evolution of biological nervous systems in nature.
+
+
+https://user-images.githubusercontent.com/72190529/119739580-bb293d00-be82-11eb-98bd-51243e30ecbd.mp4
+
 
 **Q-learning** is a model-free reinforcement learning algorithm that learns the value of an action in a particular state.
 
