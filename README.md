@@ -16,6 +16,10 @@ https://user-images.githubusercontent.com/72190529/119740360-1576cd80-be84-11eb-
 
 **Q-learning** is a model-free reinforcement learning algorithm that learns the value of an action in a particular state.
 
+
+https://user-images.githubusercontent.com/72190529/119823441-20b61180-bef5-11eb-926b-7194382ac334.mp4
+
+
 ## References
 
 ### Q-Learning:
