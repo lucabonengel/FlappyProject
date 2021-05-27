@@ -1,4 +1,4 @@
-# Flappy Project
+# Reinforcement learning project with Flappy Bird
 
 ### Creators:
 - Guruprerana Shabadi
