@@ -7,8 +7,8 @@ import $ from 'jquery';
 window.jQuery = window.$ = $;
 
 // textual output in tabular form - faster than running animations
-const algorithm = "neuroevolution";
-const textualOutput = true;
+const algorithm = "q-learning";
+const textualOutput = false;
 const minimalOutput = true;
 const nGenerations = 30;
 
